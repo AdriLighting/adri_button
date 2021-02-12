@@ -10,7 +10,6 @@
 #include "peripherals.h"
 
 #include <Arduino.h>
-#include <adri_tools.h>
 
 //#define BUTTONS_DEBUG
 //#define LEDS_DEBUG
@@ -26,7 +25,7 @@ button * buttons[BUTTON_MAX];
 int button_create(int pin, boolean pullup) {
 	if (button_nbr<BUTTON_MAX) {
 		#ifdef BUTTONS_DEBUG
-				fsprintf("creating button nbr:%d pin:%d, pullup:%d\n", button_nbr, pin, pullup);
+				Serial.printf("creating button nbr:%d pin:%d, pullup:%d\n", button_nbr, pin, pullup);
 		#endif
 		buttons[button_nbr]=new button(button_nbr, pin, pullup);
 		button_nbr++;
@@ -77,8 +76,8 @@ void	peripherals_end() {
 		_long_press		= false;
 		if (_pin_number>=0) pinMode(_pin_number, INPUT_PULLUP);
 		#ifdef BUTTONS_DEBUG
-			if (_pin_number>=0)  { fsprintf("Connecting button %d (%s)\n", id, hw_config().c_str());}
-			else {fsprintf("Button %d (%s) not connected\n", id, hw_config().c_str());}
+			if (_pin_number>=0)  { Serial.printf("Connecting button %d (%s)\n", id, hw_config().c_str());}
+			else {Serial.printf("Button %d (%s) not connected\n", id, hw_config().c_str());}
 		#endif
 	}
 
@@ -165,14 +164,14 @@ void	peripherals_end() {
 
 	int button::click() {
 		int b = _short_press;
-		if (peripherals_trace) if (b!=0) fsprintf("button %d %d short press\n",_id,b);
+		if (peripherals_trace) if (b!=0) Serial.printf("button %d %d short press\n",_id,b);
 		_short_press 	= 0;
 		return b;
 	}
 
 	boolean button::long_press() {
 		boolean b = _long_press;
-		if (peripherals_trace) if (b!=0) fsprintf("button %d long press\n",_id);
+		if (peripherals_trace) if (b!=0) Serial.printf("button %d long press\n",_id);
 		_long_press 	= false;
 		return b;
 	}
@@ -180,7 +179,7 @@ void	peripherals_end() {
     void button::change_state() {
         boolean b = on();
         #ifdef BUTTONS_DEBUG
-            fsprintf("button change button:%d status:%s click:%d long:%d\n", b , status(_status).c_str(), _short_press, _long_press);
+            Serial.printf("button change button:%d status:%s click:%d long:%d\n", b , status(_status).c_str(), _short_press, _long_press);
         #endif
         _press = b;
     }
