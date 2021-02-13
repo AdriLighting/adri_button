@@ -6,9 +6,17 @@ Bibliothèque pour bouton poussoir momentané, permet détecter l’état du bou
 Supports AVR and ESP8266 platform
 
 <pre>
-    Dependency Graph
-    |-- <adri_button> 1.0.0    
+Librairies
+<details>
+adri_button                     = https://github.com/AdriLighting/adri_button
+
+esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
+</details>
+Dependency Graph
+<details>
+|-- [adri_button] 1.0.0</details>
 </pre>
+
 
 <hr>examples
 
