@@ -9,8 +9,6 @@ Supports AVR and ESP8266 platform
 Librairies
 <details>
 adri_button                     = https://github.com/AdriLighting/adri_button
-
-esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
 </details>
 Dependency Graph
 <details>
