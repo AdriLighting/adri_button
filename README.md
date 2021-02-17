@@ -5,29 +5,74 @@ Bibliothèque pour bouton poussoir momentané, permet détecter l’état du bou
 
 Supports AVR and ESP8266 platform
 
-<pre>
-Librairies
-<details>
-adri_button                     = https://github.com/AdriLighting/adri_button
-</details>
-Dependency Graph
-<details>
-|-- [adri_button] 1.0.0</details>
-</pre>
+<br>
 
+## peripherals.h 
 
-<hr>examples
+Créateur : Nri
 
-- adri_button_1
-<pre>
-platformio.ini
-<details>
-[env:nodemcuv2]
-platform=espressif8266
-board=nodemcuv2
-framework=arduino
-lib_extra_dirs= ${env.lib_extra_dirs}
-[platformio]
-src_dir= ${env.src_dir}
+<hr>
 
-</details></pre><hr>
+## QuickStart
+### Variables statique
+```c++
+int bp_1;
+#define BPPIN_1 D1
+```
+### Setup
+* int button_create(int pin, boolean pullup, boolean input);
+```c++
+    bp_1 = button_create (BPPIN_1, PULLUP, true);
+```
+### Loop
+* detecte l'état du bouton
+    * void peripherals_loop();
+```c++
+        peripherals_loop();
+```
+* attibuer les focntion suivant l'état du bouton
+```c++
+    int clickBp_1 = buttons[bp_1]->click();
+    if (clickBp_1 == 0){
+        if (buttons[bp_1]->long_press()) {
+            Serial.println("[longClick]");
+        } 
+    } else {
+        if (button_getNbrClick(clickBp_1, 1) ) {Serial.println(F("[shotClick x1]"));}     
+        if (button_getNbrClick(clickBp_1, 2) ) {Serial.println(F("[shotClick x2]"));}     
+        if (button_getNbrClick(clickBp_1, 3) ) {Serial.println(F("[shotClick x3]"));}   
+        }           
+    }       
+```
+
+<br>
+
+## bp.h
+Créateur : AdriLighting
+<hr>
+
+## QuickStart
+### Variables statique
+```c++
+int bp_1;
+#define BPPIN_1 D1
+```
+### functions
+* attibuer les focntion suivant l'état du bouton
+```c++
+    void simplClick()   {Serial.print(F("[simplClick]\n"));}
+    void longClicl()    {Serial.print(F("[longClicl]\n"));}      
+```
+### Setup
+* int button_create_scLc(int pin, boolean pullup, int input, click_func function, click_func function_2, int delay = 10);
+    * delay a 0 pour une action une fois la pression terminer
+    * delay > 0 pour une action pendant la pression 
+```c++
+    button_create_scLc(D1, PULLDOWN, 1, simplClick, longClicl);
+```
+### Loop
+* detecte l'état du bouton
+    * void button_lc_loop();
+```c++
+        button_lc_loop();
+```

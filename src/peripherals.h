@@ -9,27 +9,29 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
 #include <Arduino.h>
+#include "def.h"
 
 #define PULLUP		true
 #define PULLDOWN	false
 
-enum button_status { inactive, raised, after_click, after_long, wait_release, end_and_clear };
-enum button_event	{ button_idle, button_1_click,  button_2_click,  button_3_click,  button_4_click,  button_long};
+#define BUTTON_MAX 	10
+
 
 class button {
 public:
 	unsigned long   _last_change;
 	int             _id;
-	int             _click_number;
+	int				_click_number;
 	button_status   _status;
 	boolean         _pullup;
-	int             _short_press;
-	int             _long_press;
+	int				_short_press;
+	boolean			_long_press = false;
+	boolean			_long_press_loop = false;
 	boolean         _press;
 	int 			_pin_number;
 
 
-					button(int id, int pin, boolean direction);
+					button(int id, int pin, boolean direction, boolean input);
 	void			loop();
 	void			setup();
 	void			end();
@@ -38,17 +40,10 @@ public:
 	boolean			long_press();
 	void			change_state();
 	void			reset();
+	String 			hw_config();
 };
-
-
-
-#define BUTTON_MAX 10
-#define LED_MAX 5
-
-extern	button	* buttons	[BUTTON_MAX];
-
-int button_create(int pin, boolean pullup);
-
+extern	button	* buttons[BUTTON_MAX];
+int 	button_create(int pin, boolean pullup, boolean input);
 void	peripherals_setup() ;
 void	peripherals_loop() ;
 void	peripherals_end();

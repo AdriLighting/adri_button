@@ -7,90 +7,117 @@
  *	Process hardware dependents things like push buttons, leds etc
  */
 
+/*
+    17/02/2021 00:11:31
+    edited by Adrilighting 
+*/
+
 #include "peripherals.h"
 
 #include <Arduino.h>
 
-//#define BUTTONS_DEBUG
-//#define LEDS_DEBUG
+
+// ################################################################################################
+// ################################################################################################
+//
+// region ################################################ VARIABLES
+
+// #define BUTTONS_DEBUG
 
 namespace  {
     boolean peripherals_trace = false;
 
     int button_nbr=0;
+
+    #ifdef BUTTONS_DEBUG
+        String status(int status) {
+            switch (status) {
+            case 0: return "Inactive     ";
+            case 1: return "Raised       ";
+            case 2: return "After click  ";
+            case 3: return "After long   ";
+            case 4: return "Wait release ";
+            case 5: return "End and clear";
+            }
+        }
+    #endif  
+
+    String dir_string(boolean pullup) {if (pullup) return "pullup"; else return "pulldown";}  
 } // 
 
 button * buttons[BUTTON_MAX];
 
-int button_create(int pin, boolean pullup) {
-	if (button_nbr<BUTTON_MAX) {
-		#ifdef BUTTONS_DEBUG
-				Serial.printf("creating button nbr:%d pin:%d, pullup:%d\n", button_nbr, pin, pullup);
-		#endif
-		buttons[button_nbr]=new button(button_nbr, pin, pullup);
-		button_nbr++;
-		return button_nbr-1;
-	}
-	return -1;
+#define MAX_SHORT   200
+#define MAX_LONG    2000    
+// endregion >>>> VARIABLES
+
+
+
+// ################################################################################################
+// ################################################################################################
+// 
+// region ################################################ USER FUNCTION
+int button_create(int pin, boolean pullup, boolean input) {
+    if (button_nbr<BUTTON_MAX) {
+        #ifdef BUTTONS_DEBUG
+            Serial.printf_P(PSTR("\n[button_create] creating button nbr:%d pin:%d, pullup:%d\n"), button_nbr, pin, pullup);
+        #endif
+        buttons[button_nbr] = new button(button_nbr, pin, pullup, input);
+        button_nbr++;
+        return button_nbr-1;
+    }
+    return -1;
 }
 
-void	peripherals_setup() {
-		for (int i=0; i<button_nbr;	i++) buttons[i]->setup();
+void    peripherals_setup() {
+        for (int i=0; i<button_nbr;    i++) buttons[i]->setup();
 }
 
-void	peripherals_loop() {
-		for (int i=0; i<button_nbr;	i++) buttons[i]->loop();
+void    peripherals_loop() {
+        for (int i=0; i<button_nbr;    i++) buttons[i]->loop();
 }
 
-void	peripherals_end() {
-		for (int i=0; i<button_nbr;	i++) buttons[i]->end();
-}
+void    peripherals_end() {
+        for (int i=0; i<button_nbr;    i++) buttons[i]->end();
+}    
+// endregion >>>> USER FUNCTION
 
-#ifdef BUTTONS_DEBUG
-	String status(int status) {
-		switch (status) {
-		case 0: return "Inactive     ";
-		case 1: return "Raised       ";
-		case 2: return "After click  ";
-		case 3: return "After long   ";
-		case 4: return "Wait release ";
-		case 5: return "End and clear";
-		}
-	}
-#endif
 
-	#define MAX_SHORT 	250
-	#define MAX_LONG	2000
 
-		String dir_string(boolean pullup) {if (pullup) return "pullup"; else return "pulldown";}
 
-	button::button(int id, int pin, boolean pullup) {
-		_id				= id;
-		_pin_number		= pin;
-		_pullup			= pullup;
-		_press			= on();
-		_click_number	= 0;
-		_status 		= end_and_clear;
-		_last_change	= millis();
-		_short_press	= 0;
-		_long_press		= false;
-		if (_pin_number>=0) pinMode(_pin_number, INPUT_PULLUP);
-		#ifdef BUTTONS_DEBUG
-			if (_pin_number>=0)  { Serial.printf("Connecting button %d (%s)\n", id, hw_config().c_str());}
-			else {Serial.printf("Button %d (%s) not connected\n", id, hw_config().c_str());}
-		#endif
-	}
+// ################################################################################################
+// ################################################################################################
+// 
+// region ################################################ CONSTRUCTOR
+    button::button(int id, int pin, boolean pullup, boolean input) {
+        _id                = id;
+        _pin_number        = pin;
+        _pullup            = pullup;
+        _press              = on();
+        _click_number       = 0;
+        _status             = end_and_clear;
+        _last_change        = millis();
+        _short_press        = 0;
+        _long_press        = false;
+        if (_pin_number>=0) {
+            if (input)  pinMode(_pin_number, INPUT_PULLUP);
+            else        pinMode(_pin_number, INPUT);
+        }
+        #ifdef BUTTONS_DEBUG
+            if (_pin_number>=0)  { Serial.printf_P(PSTR("\n[button::button] Connecting button %d (%s)\n"), id, hw_config().c_str());}
+            else                 { Serial.printf_P(PSTR("\n[button::button] Button %d (%s) not connected\n"), id, hw_config().c_str());}
+        #endif
+    }    
+// endregion >>>> CONSTRUCTOR
 
-	void button::setup() {
-		if (_pin_number>=0) pinMode(_pin_number, INPUT_PULLUP);
-	}
-
+	void button::setup() { }
 	void button::end() {}
 
-	void button::loop() {
-		boolean b = on();
-		switch (_status) {
-				/* when inactive, we wait for the button activation */
+// region ################################################ LOOP
+    void button::loop() {
+        boolean b = on();
+        switch (_status) {
+                /* when inactive, we wait for the button activation */
                 case inactive: //0
                     if (b) {
                         _last_change    = millis();
@@ -158,31 +185,39 @@ void	peripherals_end() {
                         change_state();
                     }
                     break;
-		}
-		_press = b;
-	}
+        }
+        _press = b;
+    }    
+// endregion >>>> LOOP
 
-	int button::click() {
-		int b = _short_press;
-		if (peripherals_trace) if (b!=0) Serial.printf("button %d %d short press\n",_id,b);
-		_short_press 	= 0;
-		return b;
-	}
+// region ################################################ CLICK STATU
+    int button::click() {
+        int b = _short_press;
+        if (peripherals_trace) if (b!=0) Serial.printf_P(PSTR("\n[button::click] button %d %d short press\n"),_id,b);
+        _short_press = 0;
+        return b;
+    }
 
-	boolean button::long_press() {
-		boolean b = _long_press;
-		if (peripherals_trace) if (b!=0) Serial.printf("button %d long press\n",_id);
-		_long_press 	= false;
-		return b;
-	}
+    boolean button::long_press() {
+        boolean b = _long_press;
+        if (peripherals_trace) if (b!=0) Serial.printf_P(PSTR("\n[button::long_press] button %d long press\n"),_id);
+        _long_press = 0;
+        return b;
+    }
 
     void button::change_state() {
         boolean b = on();
         #ifdef BUTTONS_DEBUG
-            Serial.printf("button change button:%d status:%s click:%d long:%d\n", b , status(_status).c_str(), _short_press, _long_press);
+            Serial.printf_P(PSTR("\n[button::change_state] button change button:%d status:%s click:%d long:%d\n"), b , status(_status).c_str(), _short_press, _long_press);
         #endif
         _press = b;
+    }    
+// endregion >>>> CLICK STATU
+
+    void button::reset() {
+        _status = end_and_clear;
     }
+
     boolean button::on() {
         if (_pin_number>=0) {
             if (_pullup)    return (digitalRead(_pin_number)==LOW);
@@ -192,7 +227,13 @@ void	peripherals_end() {
         }
     }
 
-	void button::reset() {
-		_status 		= end_and_clear;
-	}
-
+    String button::hw_config() {
+        String  s;
+        if (_pin_number>=0) {
+            s="pin "+String(_pin_number)+",";
+            s+= (_pullup) ? "pullup" :"pulldown";
+        } else {
+            s="inactive";
+        }
+        return s;
+    }

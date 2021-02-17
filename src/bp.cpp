@@ -94,7 +94,12 @@ void button_lc_loop() {
 				else				{_longclick = false;delay(250);}      
 			} else {
 				delay(250);
-				button_lc_array[i]->_click_func();
+				while (digitalRead(button_lc_array[i]->_pin_number) == button_lc_array[i]->_pullup) {
+					delay(10);
+					_longclick  = true;  
+				} 	
+				if (!_longclick) 	{button_lc_array[i]->_click_func();}
+				else				{button_lc_array[i]->_longclick_func();_longclick = false;delay(250);}  
 			}
 		}
 	}

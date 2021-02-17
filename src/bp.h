@@ -10,10 +10,8 @@
    
 	class button_lc {
 	public:
-		unsigned long   _last_change;
 		int             _id;
 		boolean         _pullup;
-		int             _long_press;
 		int 			_pin_number;
 		int 			_delay_lc;
 		click_func 		_click_func;
@@ -29,10 +27,10 @@
 	extern button_lc * button_lc_array[];
 
 	int button_create_sc(int pin, boolean pullup, int input, click_func function);
-	int button_create_scLc(int pin, boolean pullup, int input, click_func function, click_func function_2, int delay);
+	int button_create_scLc(int pin, boolean pullup, int input, click_func function, click_func function_2, int delay = 10);
 
 	int button_create_sc(int pin, boolean pullup, int input);
-	int button_create_scLc(int pin, boolean pullup, int input, int delay);
+	int button_create_scLc(int pin, boolean pullup, int input, int delay = 10);
 
 	void button_lc_loop();
 #endif
